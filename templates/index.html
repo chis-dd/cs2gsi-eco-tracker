@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round Tracker</title>
+</head>
+<body>
+    <h1>Round Tracker</h1>
+    <div id="teamScores">
+        <p>Team CT: <span id="teamCTScore">0</span></p>
+        <p>Team T: <span id="teamTScore">0</span></p>
+    </div>
+
+    <script>
+        // Fetch data from Flask backend
+        function fetchData() {
+            fetch('/data')
+            .then(response => response.json())
+            .then(data => {
+                // Update scores on the page
+                document.getElementById('teamCTScore').textContent = data.team_ct.score;
+                document.getElementById('teamTScore').textContent = data.team_t.score;
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Update data every 5 seconds
+        setInterval(fetchData, 5000);
+
+        // Initial fetch when the page loads
+        window.onload = fetchData;
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Economy Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        .team {
+            margin-bottom: 20px;
+        }
+        .team-name {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CS2 Economy Tracker</h1>
+        <div class="team" id="ctTeam">
+            <span class="team-name">Counter-Terrorists (CT):</span>
+            <span id="ctEconomy"></span>
+        </div>
+        <div class="team" id="tTeam">
+            <span class="team-name">Terrorists (T):</span>
+            <span id="tEconomy"></span>
+        </div>
+    </div>
+
+    <script>
+        // Function to fetch data from the server and update the dashboard
+        function updateDashboard() {
+
+    // Define the team_data object
+var team_data = {
+    'CT': {'score': 0, 'consecutive_round_losses': 0, 'last_score' : 0, 'estimate_eco' : 0},
+    'T': {'score': 0, 'consecutive_round_losses': 0, 'last_score' : 0, 'estimate_eco' : 0}
+};
+        
+    fetch('/update')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Update economy for Counter-Terrorists (CT)
+        team_data['CT']['score'] = data['CT']['score'];
+        team_data['CT']['consecutive_round_losses'] = data['CT']['consecutive_round_losses'];
+        team_data['CT']['last_score'] = data['CT']['last_score'];
+        team_data['CT']['estimate_eco'] = data['CT']['estimate_eco'];
+
+        // Update economy for Terrorists (T)
+        team_data['T']['score'] = data['T']['score'];
+        team_data['T']['consecutive_round_losses'] = data['T']['consecutive_round_losses'];
+        team_data['T']['last_score'] = data['T']['last_score'];
+        team_data['T']['estimate_eco'] = data['T']['estimate_eco'];
+
+        // Update dashboard elements with new data
+        document.getElementById('ctEconomy').textContent = '$' + team_data['CT']['estimate_eco'].toFixed(2);
+        document.getElementById('tEconomy').textContent = '$' + team_data['T']['estimate_eco'].toFixed(2);
+    })
+    .catch(error => console.error('Error fetching data:', error));
+}
+        // Update dashboard initially and every 5 seconds
+        setInterval(updateDashboard, 5000);
+        updateDashboard(); // Initial update
+    </script>
+</body>
+</html>
