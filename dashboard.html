@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 Economy Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">CS2 Economy Tracker</h1>
+
+        <div class="text-center mb-4">
+            <button id="resetButton" class="btn btn-danger" onclick="window.location.href='/reset'">Reset Dashboard</button>
+        </div>
+
+        <!-- Current Half Data -->
+        <div id="currentHalfData" class="row">
+            <!-- CT Data -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Counter-Terrorists (CT)</h5>
+                        <p class="card-text">Income: <span id="ctEconomy"></span></p>
+                        <div id="ctTimeline" class="timeline"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- T Data -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Terrorists (T)</h5>
+                        <p class="card-text">Income: <span id="tEconomy"></span></p>
+                        <div id="tTimeline" class="timeline"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to fetch data from the server and update the dashboard
+        function updateDashboard() {
+
+// Define the team_data object
+var team_data = {
+    'CT': {'score': 0, 'consecutive_round_losses': 0, 'last_score': 0, 'estimate_eco': 0, 'round_wins': 0, 'total_income': 0, 'timeline': []},
+    'T': {'score': 0, 'consecutive_round_losses': 0, 'last_score': 0, 'estimate_eco': 0, 'round_wins': 0, 'total_income': 0, 'timeline': []}
+};
+
+fetch('/update')
+.then(response => {
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+    return response.json();
+})
+.then(data => {
+    // Update economy for Counter-Terrorists (CT)
+    team_data['CT']['score'] = data['CT']['score'];
+    team_data['CT']['consecutive_round_losses'] = data['CT']['consecutive_round_losses'];
+    team_data['CT']['last_score'] = data['CT']['last_score'];
+    team_data['CT']['estimate_eco'] = data['CT']['estimate_eco'];
+    team_data['CT']['round_wins'] = data['CT']['round_wins'];
+    team_data['CT']['total_income'] = data['CT']['total_income'];
+    team_data['CT']['timeline'] = data['CT']['timeline'];
+
+    // Update economy for Terrorists (T)
+    team_data['T']['score'] = data['T']['score'];
+    team_data['T']['consecutive_round_losses'] = data['T']['consecutive_round_losses'];
+    team_data['T']['last_score'] = data['T']['last_score'];
+    team_data['T']['estimate_eco'] = data['T']['estimate_eco'];
+    team_data['T']['round_wins'] = data['T']['round_wins'];
+    team_data['T']['total_income'] = data['T']['total_income'];
+    team_data['T']['timeline'] = data['T']['timeline'];
+
+    // Update dashboard elements with new data
+    document.getElementById('ctEconomy').textContent = '$' + team_data['CT']['estimate_eco'].toFixed(2);
+    document.getElementById('tEconomy').textContent = '$' + team_data['T']['estimate_eco'].toFixed(2);
+
+    // Update timeline for Counter-Terrorists (CT)
+    document.getElementById('ctTimeline').innerHTML = generateTimelineHTML(team_data['CT']['timeline']);
+
+    // Update timeline for Terrorists (T)
+    document.getElementById('tTimeline').innerHTML = generateTimelineHTML(team_data['T']['timeline']);
+})
+.catch(error => console.error('Error fetching data:', error));
+}
+
+// Function to generate HTML for the timeline
+function generateTimelineHTML(timeline) {
+    let html = '<strong>Previous incomes:</strong><br>';
+    if (Array.isArray(timeline) && timeline.length > 0) {
+        timeline.forEach(entry => {
+            html += `Round ${entry.round}: +$${entry.income}<br>`;
+        });
+    } else {
+        html += 'No data available';
+    }
+    return html;
+}
+
+// Update dashboard initially and every 5 seconds
+setInterval(updateDashboard, 5000);
+updateDashboard(); // Initial update
+    </script>
+</body>
+</html>
